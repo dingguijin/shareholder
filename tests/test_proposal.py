@@ -5,6 +5,12 @@ from eth_hash.auto import keccak
 from typing import Tuple
 from eth_utils import encode_hex
 
+import time
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("BrownieTestLogger")
+
 # used for helped aggregation
 def get_public_key_G1(secret_key: int) -> Tuple[FQ, FQ, FQ]:
     return multiply(G1, secret_key)
@@ -201,4 +207,65 @@ def format_G2(g2_element: Tuple[FQ2, FQ2, FQ2]) -> Tuple[FQ2, FQ2]:
 
 def test_shareholder():
     test_dividends = accounts[0].deploy(Dividends)
+    test_bls = accounts[0].deploy(TestBLS)
+
+    _holder_0 = accounts.add()
+    _holder_1 = accounts.add()
+    _holder_2 = accounts.add()
+    _holder_3 = accounts.add()
+
+    test_dividends.addFirstInvestment(_holder_0.address, 1000*1000)
+    test_dividends.addFirstInvestment(_holder_1.address, 1000*1000)
+    test_dividends.addFirstInvestment(_holder_2.address, 1000*1000)
+    test_dividends.addFirstInvestment(_holder_3.address, 1000*1000)
+
+    print(test_dividends.createProposal())
+    print(test_dividends.createProposal())
+    print(test_dividends.createProposal())
+
+    _holder_private_0 = int(_holder_0.private_key, 16)
+    _holder_private_1 = int(_holder_1.private_key, 16)
+    _holder_private_2 = int(_holder_2.private_key, 16)
+    _holder_private_3 = int(_holder_3.private_key, 16)
+        
+    _holder_key_0 = get_public_key(_holder_private_0)
+    _holder_key_1 = get_public_key(_holder_private_1)
+    _holder_key_2 = get_public_key(_holder_private_2)
+    _holder_key_3 = get_public_key(_holder_private_3)
+
+    # _holder_key_0_solc = format_G2(_holder_key_0)
+    # _holder_key_1_solc = format_G2(_holder_key_1)
+    # _holder_key_2_solc = format_G2(_holder_key_2)
+    # _holder_key_3_solc = format_G2(_holder_key_3)
+
+    agg_public_key = aggregate_public_keys([_holder_key_0,
+                                            _holder_key_1,
+                                            _holder_key_2,
+                                            _holder_key_3])
+    agg_pubkey_solc = format_G2(agg_public_key)
+
+    test_dividends.setAggBlsPublicKey(agg_pubkey_solc)
+    print(test_dividends.aggBlsPublicKey(0))
+    print(agg_pubkey_solc)
+
+    uint256 = 1
+    data = uint256.to_bytes(32, byteorder='big')
+    message_solc = tuple(test_bls.hashToPoint(data))
+    message = parse_solc_G1(message_solc)
+    
+    sig0 = sign(message, _holder_private_0)
+    sig1 = sign(message, _holder_private_1)
+    sig2 = sign(message, _holder_private_2)
+    sig3 = sign(message, _holder_private_3)
+
+    agg_sig = aggregate_signatures([sig0, sig1, sig2, sig3])
+    agg_sig_solc = format_G1(agg_sig)
+
+    assert test_bls.verifySingle(agg_sig_solc, agg_pubkey_solc, message_solc)
+    assert test_dividends.verifyProposal(uint256, agg_sig_solc)
+
+    print(test_bls.verifySingle(agg_sig_solc, agg_pubkey_solc, message_solc))
+    print(test_dividends.proposalCount())
+    print(test_dividends.totalInvestment())
+    print(test_dividends.owner())
     return

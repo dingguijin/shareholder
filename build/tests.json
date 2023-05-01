@@ -1,0 +1,18 @@
+{
+  "contracts": {
+    "BLS": "1ce946f6a4eaa185320328620ccf999b9e86db7c",
+    "BN256G2": "efae892b53ffb429c5802bd0a719b2049e8b4ea0",
+    "Dividends": "fe769d7b55ab3435ed1c5b258e57d9c8c99fbf8d",
+    "TestBLS": "957a188531d9eb9fd67611752b69294023092c08"
+  },
+  "tests": {
+    "tests/test_proposal.py": {
+      "coverage": false,
+      "isolated": false,
+      "results": ".",
+      "sha1": "4181ba4bb6896f2ae6bcd2b066cccbfeac4da6ba",
+      "txhash": []
+    }
+  },
+  "tx": {}
+}
