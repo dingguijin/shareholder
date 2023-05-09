@@ -78,12 +78,12 @@ contract Dividends {
     function calculateDividends(address _shareholder) public view returns (uint256) {
         Shareholder memory s = shareholders[_shareholder];
         uint256 totalIncome = calculateTotalIncome();
-        uint256 conversionShares = (s.firstInvestment/totalFirstInvestment) / 2;
+        uint256 conversionShares = ((1000 * s.firstInvestment)/totalFirstInvestment) / 2;
         uint256 conversionEarnings = 0;
         if (totalIncome != 0) {
-            conversionEarnings = s.income / totalIncome;
+            conversionEarnings = (1000 * s.income) / totalIncome;
         }
-        uint256 secondInvestmentRatio = (s.secondInvestment) / totalInvestment;
+        uint256 secondInvestmentRatio = (1000 * s.secondInvestment) / totalInvestment;
         uint256 actualDividends = (conversionShares / 4) + (conversionEarnings / 2) + (secondInvestmentRatio / 4);
         return actualDividends;
     }
